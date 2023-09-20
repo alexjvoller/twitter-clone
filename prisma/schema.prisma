@@ -11,14 +11,30 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
-model Example {
-    id        Int      @id @default(autoincrement())
-    name      String
+model Tweet {
+    id  String @id @default(uuid())
+    userId  String
+    content String
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
 
-    @@index([name])
+    // creating relations between 
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    likes Like[]
+
+    @@unique([createdAt, id])
+    @@index([userId])
+}
+
+model Like{
+    userId String
+    tweetId String
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    Tweet Tweet @relation(fields: [tweetId], references: [id], onDelete:Cascade)
+
+// the below syntax sets the id as a combination of both userId and tweetId since both are unique in the program. 
+    @@id([userId, tweetId])
+    @@index([userId])
+    @@index([tweetId])
 }
 
 // Necessary for Next auth
@@ -59,6 +75,13 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+
+    // Non-Next Auth
+    tweets        Tweet[]
+    likes         Like[]
+    followers User[] @relation(name: "Followers")  //this is a many to many relationship
+    follows User[] @relation(name: "Followers")  //this is a many to many relationship
+
 }
 
 model VerificationToken {
